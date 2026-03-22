@@ -22,6 +22,7 @@ class TradeRecord:
     slug: str
     outcome: str
     transaction_hash: str
+    event_slug: str | None = None
 
     @classmethod
     def from_api(cls, payload: dict[str, object]) -> "TradeRecord":
@@ -37,6 +38,11 @@ class TradeRecord:
             slug=str(payload["slug"]),
             outcome=str(payload["outcome"]),
             transaction_hash=str(payload["transactionHash"]),
+            event_slug=(
+                str(payload["eventSlug"])
+                if payload.get("eventSlug") is not None
+                else None
+            ),
         )
 
     @property

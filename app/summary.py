@@ -5,6 +5,29 @@ from html import escape
 from app.models import AlertCandidate, SummaryRow
 
 
+SPORTS_LEAGUE_PREFIXES = {
+    "afl",
+    "bundesliga",
+    "champions-league",
+    "epl",
+    "europa-league",
+    "f1",
+    "la-liga",
+    "ligue-1",
+    "mlb",
+    "mma",
+    "nba",
+    "ncaab",
+    "ncaaf",
+    "nfl",
+    "nhl",
+    "serie-a",
+    "tennis",
+    "ufc",
+    "wnba",
+}
+
+
 def _truncate(text: str, width: int) -> str:
     if len(text) <= width:
         return text
@@ -20,6 +43,17 @@ def _format_price(value) -> str:
     return normalized
 
 
+def _build_market_url(candidate: AlertCandidate) -> str:
+    event_slug = candidate.trade.event_slug
+    if event_slug:
+        for league in sorted(SPORTS_LEAGUE_PREFIXES, key=len, reverse=True):
+            prefix = f"{league}-"
+            if event_slug.startswith(prefix):
+                return f"https://polymarket.com/sports/{league}/{event_slug}"
+        return f"https://polymarket.com/event/{event_slug}"
+    return f"https://polymarket.com/event/{candidate.trade.slug}"
+
+
 def format_alert_message(candidate: AlertCandidate) -> str:
     title = escape(candidate.trade.title)
     outcome = escape(candidate.trade.outcome)
@@ -27,7 +61,7 @@ def format_alert_message(candidate: AlertCandidate) -> str:
     bet_size = f"{candidate.bet_size_usd:,.0f}"
     joined_date = candidate.joined_at.date().isoformat()
     tx_url = f"https://polygonscan.com/tx/{candidate.trade.transaction_hash}"
-    market_url = f"https://polymarket.com/event/{candidate.trade.slug}"
+    market_url = _build_market_url(candidate)
     profile_url = (
         "https://polymarket.com/"
         f"@{candidate.trade.proxy_wallet}?via=alertbot"

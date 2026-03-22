@@ -59,6 +59,39 @@ def test_format_alert_message_contains_links_and_fields() -> None:
     assert "polymarket.com/" in message
 
 
+def test_format_alert_message_uses_sports_event_url_when_available() -> None:
+    candidate = build_candidate()
+    trade = TradeRecord(
+        proxy_wallet=candidate.trade.proxy_wallet,
+        side=candidate.trade.side,
+        asset=candidate.trade.asset,
+        condition_id=candidate.trade.condition_id,
+        size=candidate.trade.size,
+        price=Decimal("0.39"),
+        timestamp=candidate.trade.timestamp,
+        title="Will Newcastle United FC win on 2026-03-22?",
+        slug="epl-new-sun-2026-03-22-new",
+        outcome="No",
+        transaction_hash=candidate.trade.transaction_hash,
+        event_slug="epl-new-sun-2026-03-22",
+    )
+    candidate = AlertCandidate(
+        severity=candidate.severity,
+        trade=trade,
+        matched_activity=candidate.matched_activity,
+        joined_at=candidate.joined_at,
+        executed_trade_count=candidate.executed_trade_count,
+        bet_size_usd=candidate.bet_size_usd,
+    )
+
+    message = format_alert_message(candidate)
+
+    assert (
+        '<b>Market:</b> <a href="https://polymarket.com/sports/epl/epl-new-sun-2026-03-22">'
+        in message
+    )
+
+
 def test_format_summary_message_renders_top_table() -> None:
     rows = [
         SummaryRow("Counter-Strike: PARIVISION vs Team Spirit", Decimal("53876")),
