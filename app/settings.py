@@ -29,6 +29,19 @@ def _require(name: str) -> str:
     return value
 
 
+def _validate_telegram_value(name: str, value: str) -> str:
+    placeholders = {
+        "your_bot_token",
+        "@your_alert_channel",
+        "@your_summary_channel",
+    }
+    if value in placeholders or value.startswith("your_"):
+        raise ValueError(
+            f"Environment variable {name} still has a placeholder value: {value}"
+        )
+    return value
+
+
 def _parse_time(value: str) -> time:
     hours, minutes = value.split(":", 1)
     return time(hour=int(hours), minute=int(minutes))
@@ -56,10 +69,21 @@ class Settings:
     @classmethod
     def from_env(cls) -> "Settings":
         load_dotenv()
-        alert_chat_id = _require("TELEGRAM_ALERT_CHAT_ID")
+        alert_chat_id = _validate_telegram_value(
+            "TELEGRAM_ALERT_CHAT_ID",
+            _require("TELEGRAM_ALERT_CHAT_ID"),
+        )
         summary_chat_id = os.getenv("TELEGRAM_SUMMARY_CHAT_ID") or alert_chat_id
+        if summary_chat_id:
+            summary_chat_id = _validate_telegram_value(
+                "TELEGRAM_SUMMARY_CHAT_ID",
+                summary_chat_id,
+            )
         return cls(
-            telegram_bot_token=_require("TELEGRAM_BOT_TOKEN"),
+            telegram_bot_token=_validate_telegram_value(
+                "TELEGRAM_BOT_TOKEN",
+                _require("TELEGRAM_BOT_TOKEN"),
+            ),
             telegram_alert_chat_id=alert_chat_id,
             telegram_summary_chat_id=summary_chat_id,
             red_threshold_usd=Decimal(os.getenv("RED_THRESHOLD_USD", "9950")),

@@ -18,6 +18,8 @@ async def _main() -> None:
         level=getattr(logging, settings.log_level, logging.INFO),
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
     storage = Storage(settings.sqlite_path)
     polymarket_client = PolymarketClient(settings.request_timeout_seconds)

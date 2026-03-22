@@ -3,6 +3,10 @@ from __future__ import annotations
 import httpx
 
 
+class TelegramSendError(RuntimeError):
+    pass
+
+
 class TelegramClient:
     def __init__(self, bot_token: str, timeout_seconds: float = 10.0) -> None:
         self._client = httpx.AsyncClient(
@@ -23,4 +27,10 @@ class TelegramClient:
                 "disable_web_page_preview": True,
             },
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            detail = response.text
+            raise TelegramSendError(
+                f"Telegram sendMessage failed for chat_id={chat_id}: {detail}"
+            ) from exc

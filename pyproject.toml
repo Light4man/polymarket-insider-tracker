@@ -17,5 +17,9 @@ dev = [
   "pytest>=8.0,<9.0",
 ]
 
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["tests*", "data*", "*.egg-info*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

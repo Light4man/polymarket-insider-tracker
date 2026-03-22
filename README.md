@@ -24,6 +24,10 @@ pip install -e .[dev]
 
 3. Copy `.env.example` to `.env` and fill in the Telegram values.
 4. Make sure the Telegram bot is already added to the target chat or channel with permission to post.
+5. Use a real Telegram destination in `TELEGRAM_ALERT_CHAT_ID`:
+   - channel username like `@my_alerts_channel`, or
+   - numeric chat id like `-1001234567890`
+   - do not leave the example value `@your_alert_channel`
 
 ## Configuration
 
