@@ -110,3 +110,32 @@ def test_format_summary_message_handles_empty_rows() -> None:
     message = format_summary_message([], top_n=10)
 
     assert "No alert-triggered whale trades" in message
+
+
+def test_format_alert_message_rounds_float_artifact_price() -> None:
+    candidate = build_candidate()
+    trade = TradeRecord(
+        proxy_wallet=candidate.trade.proxy_wallet,
+        side=candidate.trade.side,
+        asset=candidate.trade.asset,
+        condition_id=candidate.trade.condition_id,
+        size=candidate.trade.size,
+        price=Decimal("0.2899999999756151"),
+        timestamp=candidate.trade.timestamp,
+        title=candidate.trade.title,
+        slug=candidate.trade.slug,
+        outcome="G2 Esports",
+        transaction_hash=candidate.trade.transaction_hash,
+    )
+    candidate = AlertCandidate(
+        severity=candidate.severity,
+        trade=trade,
+        matched_activity=candidate.matched_activity,
+        joined_at=candidate.joined_at,
+        executed_trade_count=candidate.executed_trade_count,
+        bet_size_usd=candidate.bet_size_usd,
+    )
+
+    message = format_alert_message(candidate)
+
+    assert "<b>Outcome:</b> G2 Esports @ $0.29" in message

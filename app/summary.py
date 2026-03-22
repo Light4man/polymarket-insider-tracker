@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from decimal import Decimal, ROUND_HALF_UP
 from html import escape
 
 from app.models import AlertCandidate, SummaryRow
@@ -37,7 +38,8 @@ def _truncate(text: str, width: int) -> str:
 
 
 def _format_price(value) -> str:
-    normalized = format(value.normalize(), "f")
+    rounded = value.quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+    normalized = format(rounded.normalize(), "f")
     if "." in normalized:
         normalized = normalized.rstrip("0").rstrip(".")
     return normalized
