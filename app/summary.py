@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+from html import escape
+
+from app.models import AlertCandidate, SummaryRow
+
+
+def _truncate(text: str, width: int) -> str:
+    if len(text) <= width:
+        return text
+    if width <= 3:
+        return text[:width]
+    return text[: width - 3] + "..."
+
+
+def format_alert_message(candidate: AlertCandidate) -> str:
+    title = escape(candidate.trade.title)
+    outcome = escape(candidate.trade.outcome)
+    price = f"{candidate.trade.price:.3f}"
+    bet_size = f"{candidate.bet_size_usd:,.2f}"
+    joined_date = candidate.joined_at.date().isoformat()
+    tx_url = f"https://polygonscan.com/tx/{candidate.trade.transaction_hash}"
+    profile_url = (
+        "https://polymarket.com/"
+        f"@{candidate.trade.proxy_wallet}?via=alertbot"
+    )
+
+    header = {
+        "RED": "🚨🔴 [VERY SUSPICIOUS ACTIVITY]",
+        "YELLOW": "⚠️🟡 [YELLOW ALERT: SUSPICIOUS ACTIVITY]",
+    }[candidate.severity]
+
+    lines = [
+        f"<b>{escape(header)}</b>",
+        f"Market: {title}",
+        f"Outcome: {outcome} @ ${price}",
+        f"Bet Size: ${bet_size} USD",
+        f"Account: Joined {joined_date}",
+        f"Trade Count: {candidate.executed_trade_count}",
+        f'<a href="{escape(tx_url)}">View Transaction</a>',
+        f'<a href="{escape(profile_url)}">View Profile</a>',
+    ]
+    return "\n".join(lines)
+
+
+def format_summary_message(rows: list[SummaryRow], *, top_n: int) -> str:
+    if not rows:
+        return "📊 24h Whale Summary\nNo alert-triggered whale trades in the last 24 hours."
+
+    market_width = 30
+    header = f"📊 24h Whale Summary (Top {top_n} Markets)"
+    table_lines = [
+        f"{'Market':<{market_width}} | Total USD",
+        "-" * (market_width + 12),
+    ]
+    for row in rows:
+        market = _truncate(escape(row.market_title), market_width)
+        total = f"${row.total_usd:,.0f}"
+        table_lines.append(f"{market:<{market_width}} | {total}")
+    return header + "\n<pre>" + "\n".join(table_lines) + "</pre>"
