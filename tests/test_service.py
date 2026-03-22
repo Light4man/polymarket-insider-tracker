@@ -152,6 +152,7 @@ def test_service_sends_red_and_dedupes_repeated_poll(tmp_path: Path) -> None:
 
     assert len(telegram.messages) == 1
     assert "[High Risk]" in telegram.messages[0][1]
+    assert "<b>Wallet:</b> <code>0xred</code>" in telegram.messages[0][1]
     count = storage.connection.execute("SELECT COUNT(*) FROM sent_alerts").fetchone()[0]
     assert count == 1
 

@@ -54,6 +54,7 @@ def test_format_alert_message_contains_links_and_fields() -> None:
     assert "<b>Outcome:</b> JD Gaming @ $0.341" in message
     assert "<b>Bet Size:</b> $1,450 USD" in message
     assert "Joined 2026-03-13" in message
+    assert "<b>Wallet:</b> <code>0x4bc2ed22a07b83d3052d98c5d96d042b7ce6f01b</code>" in message
     assert "polygonscan.com/tx/" in message
     assert "polymarket.com/" in message
 

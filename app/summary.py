@@ -44,6 +44,7 @@ def format_alert_message(candidate: AlertCandidate) -> str:
         f"<b>Outcome:</b> {outcome} @ ${price}",
         f"<b>Bet Size:</b> ${bet_size} USD",
         f"<b>Account:</b> Joined {joined_date}",
+        f"<b>Wallet:</b> <code>{escape(candidate.trade.proxy_wallet)}</code>",
         f"<b>Trade Count:</b> {candidate.executed_trade_count}",
         f'<a href="{escape(tx_url)}">View Transaction</a>',
         f'<a href="{escape(profile_url)}">View Profile</a>',
