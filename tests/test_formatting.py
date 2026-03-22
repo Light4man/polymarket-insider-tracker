@@ -49,9 +49,10 @@ def build_candidate(severity: str = "YELLOW") -> AlertCandidate:
 def test_format_alert_message_contains_links_and_fields() -> None:
     message = format_alert_message(build_candidate())
 
-    assert "YELLOW ALERT" in message
-    assert "JD Gaming @ $0.341" in message
-    assert "$1,450.00 USD" in message
+    assert "Suspicious Activity" in message
+    assert '<b>Market:</b> <a href="https://polymarket.com/event/lol-blg-vs-jdg-game-3">' in message
+    assert "<b>Outcome:</b> JD Gaming @ $0.341" in message
+    assert "<b>Bet Size:</b> $1,450 USD" in message
     assert "Joined 2026-03-13" in message
     assert "polygonscan.com/tx/" in message
     assert "polymarket.com/" in message

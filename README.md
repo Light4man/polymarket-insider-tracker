@@ -1,4 +1,4 @@
-# Polymarket Wallet Tracker
+# Polymarket Insider Wallet Tracker
 
 Python worker that watches Polymarket for suspicious new-wallet whale trades, sends Telegram alerts, and posts a daily rolling 24h summary.
 
@@ -44,7 +44,7 @@ pip install -e .[dev]
 | `YELLOW_MAX_EXECUTED_TRADES` | Default `10` |
 | `POLL_INTERVAL_SECONDS` | Default `5` |
 | `SUMMARY_TIME` | Daily summary time, `HH:MM` |
-| `SUMMARY_TIMEZONE` | IANA timezone, for example `Europe/Kiev` |
+| `SUMMARY_TIMEZONE` | IANA timezone, for example `Europe/Kyiv` |
 | `SUMMARY_TOP_N` | Number of markets in summary |
 | `SQLITE_PATH` | SQLite database path |
 | `LOG_LEVEL` | Logging level |

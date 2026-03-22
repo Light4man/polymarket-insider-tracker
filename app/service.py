@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app.classifier import classify_trade, find_matching_activity, resolve_joined_at
 from app.models import TradeRecord
@@ -12,6 +12,14 @@ from app.settings import Settings
 from app.storage import Storage
 from app.summary import format_alert_message, format_summary_message
 from app.telegram import TelegramClient
+
+TIMEZONE_ALIASES = {
+    "Europe/Kiev": "Europe/Kyiv",
+}
+
+
+def resolve_timezone_name(name: str) -> str:
+    return TIMEZONE_ALIASES.get(name, name)
 
 
 class TrackerService:
@@ -27,7 +35,15 @@ class TrackerService:
         self.telegram_client = telegram_client
         self.storage = storage
         self.logger = logging.getLogger(__name__)
-        self.summary_zone = ZoneInfo(settings.summary_timezone)
+        timezone_name = resolve_timezone_name(settings.summary_timezone)
+        try:
+            self.summary_zone = ZoneInfo(timezone_name)
+        except ZoneInfoNotFoundError as exc:
+            raise ValueError(
+                "Invalid SUMMARY_TIMEZONE. "
+                f"Got '{settings.summary_timezone}', resolved to '{timezone_name}'. "
+                "Install tzdata or use a valid IANA zone like 'Europe/Kyiv' or 'UTC'."
+            ) from exc
 
     async def run(self) -> None:
         self.storage.initialize()

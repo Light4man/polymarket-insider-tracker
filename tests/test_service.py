@@ -6,7 +6,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from app.models import PublicProfile, TradeRecord, UserActivity
-from app.service import TrackerService
+from app.service import TrackerService, resolve_timezone_name
 from app.settings import Settings
 from app.storage import Storage
 
@@ -151,7 +151,7 @@ def test_service_sends_red_and_dedupes_repeated_poll(tmp_path: Path) -> None:
     asyncio.run(service.poll_once(now=now))
 
     assert len(telegram.messages) == 1
-    assert "VERY SUSPICIOUS ACTIVITY" in telegram.messages[0][1]
+    assert "[High Risk]" in telegram.messages[0][1]
     count = storage.connection.execute("SELECT COUNT(*) FROM sent_alerts").fetchone()[0]
     assert count == 1
 
@@ -190,7 +190,7 @@ def test_service_sends_yellow_with_activity_fallback_joined_at(tmp_path: Path) -
     asyncio.run(service.poll_once(now=now))
 
     assert len(telegram.messages) == 1
-    assert "YELLOW ALERT" in telegram.messages[0][1]
+    assert "[Suspicious Activity]" in telegram.messages[0][1]
     assert "Joined 2026-03-15" in telegram.messages[0][1]
 
 
@@ -296,6 +296,11 @@ def test_daily_summary_uses_last_24_hours_and_sorts_descending(tmp_path: Path) -
     assert "Market B" in telegram.messages[0][1]
     assert "Market A" in telegram.messages[0][1]
     assert telegram.messages[0][1].find("Market A") < telegram.messages[0][1].find("Market B")
+
+
+def test_resolve_timezone_name_maps_kiev_to_kyiv() -> None:
+    assert resolve_timezone_name("Europe/Kiev") == "Europe/Kyiv"
+    assert resolve_timezone_name("UTC") == "UTC"
 
 
 def test_service_uses_configured_activity_limit(tmp_path: Path) -> None:

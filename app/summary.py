@@ -13,30 +13,38 @@ def _truncate(text: str, width: int) -> str:
     return text[: width - 3] + "..."
 
 
+def _format_price(value) -> str:
+    normalized = format(value.normalize(), "f")
+    if "." in normalized:
+        normalized = normalized.rstrip("0").rstrip(".")
+    return normalized
+
+
 def format_alert_message(candidate: AlertCandidate) -> str:
     title = escape(candidate.trade.title)
     outcome = escape(candidate.trade.outcome)
-    price = f"{candidate.trade.price:.3f}"
-    bet_size = f"{candidate.bet_size_usd:,.2f}"
+    price = _format_price(candidate.trade.price)
+    bet_size = f"{candidate.bet_size_usd:,.0f}"
     joined_date = candidate.joined_at.date().isoformat()
     tx_url = f"https://polygonscan.com/tx/{candidate.trade.transaction_hash}"
+    market_url = f"https://polymarket.com/event/{candidate.trade.slug}"
     profile_url = (
         "https://polymarket.com/"
         f"@{candidate.trade.proxy_wallet}?via=alertbot"
     )
 
     header = {
-        "RED": "🚨🔴 [VERY SUSPICIOUS ACTIVITY]",
-        "YELLOW": "⚠️🟡 [YELLOW ALERT: SUSPICIOUS ACTIVITY]",
+        "RED": "🚨 [High Risk]",
+        "YELLOW": "⚠️ [Suspicious Activity]",
     }[candidate.severity]
 
     lines = [
         f"<b>{escape(header)}</b>",
-        f"Market: {title}",
-        f"Outcome: {outcome} @ ${price}",
-        f"Bet Size: ${bet_size} USD",
-        f"Account: Joined {joined_date}",
-        f"Trade Count: {candidate.executed_trade_count}",
+        f'<b>Market:</b> <a href="{escape(market_url)}">{title}</a>',
+        f"<b>Outcome:</b> {outcome} @ ${price}",
+        f"<b>Bet Size:</b> ${bet_size} USD",
+        f"<b>Account:</b> Joined {joined_date}",
+        f"<b>Trade Count:</b> {candidate.executed_trade_count}",
         f'<a href="{escape(tx_url)}">View Transaction</a>',
         f'<a href="{escape(profile_url)}">View Profile</a>',
     ]
