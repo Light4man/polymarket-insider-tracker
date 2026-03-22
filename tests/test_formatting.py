@@ -51,6 +51,7 @@ def test_format_alert_message_contains_links_and_fields() -> None:
 
     assert "Suspicious Activity" in message
     assert '<b>Market:</b> <a href="https://polymarket.com/event/lol-blg-vs-jdg-game-3">' in message
+    assert "<b>Side:</b> BUY" in message
     assert "<b>Outcome:</b> JD Gaming @ $0.341" in message
     assert "<b>Bet Size:</b> $1,450 USD" in message
     assert "Joined 2026-03-13" in message
@@ -139,3 +140,47 @@ def test_format_alert_message_rounds_float_artifact_price() -> None:
     message = format_alert_message(candidate)
 
     assert "<b>Outcome:</b> G2 Esports @ $0.29" in message
+
+
+def test_format_alert_message_shows_sell_side() -> None:
+    candidate = build_candidate()
+    trade = TradeRecord(
+        proxy_wallet=candidate.trade.proxy_wallet,
+        side="SELL",
+        asset=candidate.trade.asset,
+        condition_id=candidate.trade.condition_id,
+        size=candidate.trade.size,
+        price=Decimal("0.95"),
+        timestamp=candidate.trade.timestamp,
+        title="Will China invade Taiwan by June 30, 2026?",
+        slug="will-china-invade-taiwan-by-june-30-2026",
+        outcome="No",
+        transaction_hash=candidate.trade.transaction_hash,
+    )
+    activity = UserActivity(
+        proxy_wallet=trade.proxy_wallet,
+        timestamp=trade.timestamp,
+        condition_id=trade.condition_id,
+        trade_type="TRADE",
+        size=trade.size,
+        usdc_size=Decimal("5940.85"),
+        transaction_hash=trade.transaction_hash,
+        price=trade.price,
+        asset=trade.asset,
+        side="SELL",
+        outcome=trade.outcome,
+        title=trade.title,
+        slug=trade.slug,
+    )
+    candidate = AlertCandidate(
+        severity="YELLOW",
+        trade=trade,
+        matched_activity=activity,
+        joined_at=candidate.joined_at,
+        executed_trade_count=7,
+        bet_size_usd=Decimal("5940.85"),
+    )
+
+    message = format_alert_message(candidate)
+
+    assert "<b>Side:</b> SELL" in message

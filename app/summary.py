@@ -59,6 +59,7 @@ def _build_market_url(candidate: AlertCandidate) -> str:
 def format_alert_message(candidate: AlertCandidate) -> str:
     title = escape(candidate.trade.title)
     outcome = escape(candidate.trade.outcome)
+    side = escape(candidate.matched_activity.side.upper())
     price = _format_price(candidate.trade.price)
     bet_size = f"{candidate.bet_size_usd:,.0f}"
     joined_date = candidate.joined_at.date().isoformat()
@@ -66,7 +67,7 @@ def format_alert_message(candidate: AlertCandidate) -> str:
     market_url = _build_market_url(candidate)
     profile_url = (
         "https://polymarket.com/"
-        f"@{candidate.trade.proxy_wallet}?via=alertbot"
+        f"@{candidate.trade.proxy_wallet}?via=polyinsidertracker"
     )
 
     header = {
@@ -77,6 +78,7 @@ def format_alert_message(candidate: AlertCandidate) -> str:
     lines = [
         f"<b>{escape(header)}</b>",
         f'<b>Market:</b> <a href="{escape(market_url)}">{title}</a>',
+        f"<b>Side:</b> {side}",
         f"<b>Outcome:</b> {outcome} @ ${price}",
         f"<b>Bet Size:</b> ${bet_size} USD",
         f"<b>Account:</b> Joined {joined_date}",
