@@ -19,7 +19,10 @@ Python worker that watches Polymarket for suspicious new-wallet whale trades, se
 2. Install dependencies:
 
 ```bash
-pip install -e .[dev]
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install -e .[dev]
 ```
 
 3. Copy `.env.example` to `.env` and fill in the Telegram values.
@@ -52,13 +55,70 @@ pip install -e .[dev]
 ## Run
 
 ```bash
-python -m app.main
+source .venv/bin/activate
+python3 -m app.main
 ```
 
 The service will create the SQLite database automatically if it does not exist.
 
+## VPS With tmux
+
+Create the virtual environment and install dependencies:
+
+```bash
+cd ~/polyinsider
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install -e .[dev]
+```
+
+Start the bot in `tmux`:
+
+```bash
+cd ~/polyinsider
+tmux new -s polyinsider
+source .venv/bin/activate
+python3 -m app.main
+```
+
+Detach from `tmux` without stopping the bot:
+
+```bash
+Ctrl+b then d
+```
+
+Check whether the bot is running:
+
+```bash
+pgrep -af "python3 -m app.main"
+tmux ls
+```
+
+Attach to the running session:
+
+```bash
+tmux attach -t polyinsider
+```
+
+Restart after code changes:
+
+```bash
+cd ~/polyinsider
+pkill -f "python3 -m app.main"
+source .venv/bin/activate
+python3 -m pip install -e .
+```
+
+Then start it again inside `tmux`:
+
+```bash
+tmux attach -t polyinsider
+python3 -m app.main
+```
+
 ## Test
 
 ```bash
-pytest
+python3 -m pytest
 ```
