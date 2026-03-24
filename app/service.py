@@ -114,6 +114,7 @@ class TrackerService:
             matched_activity,
             joined_at=joined_at,
             executed_trade_count=len(activities),
+            outcome_price_max=self.settings.outcome_price_max,
             red_threshold_usd=self.settings.red_threshold_usd,
             red_max_account_age_hours=self.settings.red_max_account_age_hours,
             red_max_executed_trades=self.settings.red_max_executed_trades,

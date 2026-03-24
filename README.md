@@ -39,6 +39,7 @@ python3 -m pip install -e .[dev]
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `TELEGRAM_ALERT_CHAT_ID` | Chat or channel for live alerts |
 | `TELEGRAM_SUMMARY_CHAT_ID` | Optional chat/channel for summaries; defaults to alert chat |
+| `OUTCOME_PRICE_MAX` | Skip alerts when outcome price is greater than this value; default `0.95` |
 | `RED_THRESHOLD_USD` | Default `9950` |
 | `RED_MAX_ACCOUNT_AGE_HOURS` | Default `24` |
 | `RED_MAX_EXECUTED_TRADES` | Default `3` |

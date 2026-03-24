@@ -52,6 +52,7 @@ class Settings:
     telegram_bot_token: str
     telegram_alert_chat_id: str
     telegram_summary_chat_id: str
+    outcome_price_max: Decimal
     red_threshold_usd: Decimal
     red_max_account_age_hours: int
     red_max_executed_trades: int
@@ -86,6 +87,7 @@ class Settings:
             ),
             telegram_alert_chat_id=alert_chat_id,
             telegram_summary_chat_id=summary_chat_id,
+            outcome_price_max=Decimal(os.getenv("OUTCOME_PRICE_MAX", "0.95")),
             red_threshold_usd=Decimal(os.getenv("RED_THRESHOLD_USD", "9950")),
             red_max_account_age_hours=int(
                 os.getenv("RED_MAX_ACCOUNT_AGE_HOURS", "24")

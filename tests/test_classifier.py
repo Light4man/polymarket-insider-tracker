@@ -56,6 +56,7 @@ def test_red_alert_boundary() -> None:
         activity,
         joined_at=now - timedelta(hours=23, minutes=59),
         executed_trade_count=2,
+        outcome_price_max=Decimal("0.95"),
         red_threshold_usd=Decimal("9950"),
         red_max_account_age_hours=24,
         red_max_executed_trades=3,
@@ -79,6 +80,7 @@ def test_yellow_alert_boundary() -> None:
         activity,
         joined_at=now - timedelta(days=9, hours=23),
         executed_trade_count=9,
+        outcome_price_max=Decimal("0.95"),
         red_threshold_usd=Decimal("9950"),
         red_max_account_age_hours=24,
         red_max_executed_trades=3,
@@ -102,6 +104,7 @@ def test_exact_yellow_age_cutoff_does_not_alert() -> None:
         activity,
         joined_at=now - timedelta(days=10),
         executed_trade_count=1,
+        outcome_price_max=Decimal("0.95"),
         red_threshold_usd=Decimal("9950"),
         red_max_account_age_hours=24,
         red_max_executed_trades=3,
@@ -167,3 +170,73 @@ def test_resolve_joined_at_uses_custom_fallback_limit() -> None:
     joined_at = resolve_joined_at(None, activities, fallback_trade_limit=15)
 
     assert joined_at == min(activity.timestamp for activity in activities)
+
+
+def test_outcome_price_above_limit_does_not_alert() -> None:
+    now = datetime(2026, 3, 22, 12, 0, tzinfo=UTC)
+    trade = TradeRecord(
+        proxy_wallet="0xabc",
+        side="BUY",
+        asset="asset-1",
+        condition_id="condition-1",
+        size=Decimal("100"),
+        price=Decimal("0.951"),
+        timestamp=datetime(2026, 3, 22, 10, 0, tzinfo=UTC),
+        title="Test Market",
+        slug="test-market",
+        outcome="Yes",
+        transaction_hash="0xtx",
+    )
+    activity = build_activity(timestamp=now - timedelta(minutes=10), usdc_size="4949")
+
+    candidate = classify_trade(
+        trade,
+        activity,
+        joined_at=now - timedelta(days=2),
+        executed_trade_count=2,
+        outcome_price_max=Decimal("0.95"),
+        red_threshold_usd=Decimal("9950"),
+        red_max_account_age_hours=24,
+        red_max_executed_trades=3,
+        yellow_threshold_usd=Decimal("4949"),
+        yellow_max_account_age_days=10,
+        yellow_max_executed_trades=10,
+        now=now,
+    )
+
+    assert candidate is None
+
+
+def test_outcome_price_equal_to_limit_still_alerts() -> None:
+    now = datetime(2026, 3, 22, 12, 0, tzinfo=UTC)
+    trade = TradeRecord(
+        proxy_wallet="0xabc",
+        side="BUY",
+        asset="asset-1",
+        condition_id="condition-1",
+        size=Decimal("100"),
+        price=Decimal("0.95"),
+        timestamp=datetime(2026, 3, 22, 10, 0, tzinfo=UTC),
+        title="Test Market",
+        slug="test-market",
+        outcome="Yes",
+        transaction_hash="0xtx",
+    )
+    activity = build_activity(timestamp=now - timedelta(minutes=10), usdc_size="4949")
+
+    candidate = classify_trade(
+        trade,
+        activity,
+        joined_at=now - timedelta(days=2),
+        executed_trade_count=2,
+        outcome_price_max=Decimal("0.95"),
+        red_threshold_usd=Decimal("9950"),
+        red_max_account_age_hours=24,
+        red_max_executed_trades=3,
+        yellow_threshold_usd=Decimal("4949"),
+        yellow_max_account_age_days=10,
+        yellow_max_executed_trades=10,
+        now=now,
+    )
+
+    assert candidate is not None

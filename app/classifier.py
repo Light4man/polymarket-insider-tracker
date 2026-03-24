@@ -47,6 +47,7 @@ def classify_trade(
     *,
     joined_at: datetime | None,
     executed_trade_count: int,
+    outcome_price_max: Decimal,
     red_threshold_usd: Decimal,
     red_max_account_age_hours: int,
     red_max_executed_trades: int,
@@ -56,6 +57,8 @@ def classify_trade(
     now: datetime,
 ) -> AlertCandidate | None:
     if joined_at is None:
+        return None
+    if trade.price > outcome_price_max:
         return None
 
     account_age = now - joined_at
