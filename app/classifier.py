@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from app.categories import detect_trade_categories
 from app.models import AlertCandidate, TradeRecord, UserActivity
 
 
@@ -54,6 +55,7 @@ def classify_trade(
     yellow_threshold_usd: Decimal,
     yellow_max_account_age_days: int,
     yellow_max_executed_trades: int,
+    yellow_excluded_categories: set[str] | frozenset[str],
     now: datetime,
 ) -> AlertCandidate | None:
     if joined_at is None:
@@ -63,6 +65,7 @@ def classify_trade(
 
     account_age = now - joined_at
     bet_size_usd = matched_activity.usdc_size
+    categories = detect_trade_categories(trade)
 
     if (
         account_age < timedelta(hours=red_max_account_age_hours)
@@ -82,6 +85,7 @@ def classify_trade(
         account_age < timedelta(days=yellow_max_account_age_days)
         and executed_trade_count < yellow_max_executed_trades
         and bet_size_usd >= yellow_threshold_usd
+        and not categories.intersection(yellow_excluded_categories)
     ):
         return AlertCandidate(
             severity="YELLOW",

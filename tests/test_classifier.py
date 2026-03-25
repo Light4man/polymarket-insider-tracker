@@ -63,6 +63,7 @@ def test_red_alert_boundary() -> None:
         yellow_threshold_usd=Decimal("4949"),
         yellow_max_account_age_days=10,
         yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset(),
         now=now,
     )
 
@@ -87,6 +88,7 @@ def test_yellow_alert_boundary() -> None:
         yellow_threshold_usd=Decimal("4949"),
         yellow_max_account_age_days=10,
         yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset(),
         now=now,
     )
 
@@ -111,6 +113,7 @@ def test_exact_yellow_age_cutoff_does_not_alert() -> None:
         yellow_threshold_usd=Decimal("4949"),
         yellow_max_account_age_days=10,
         yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset(),
         now=now,
     )
 
@@ -201,6 +204,7 @@ def test_outcome_price_above_limit_does_not_alert() -> None:
         yellow_threshold_usd=Decimal("4949"),
         yellow_max_account_age_days=10,
         yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset(),
         now=now,
     )
 
@@ -236,7 +240,83 @@ def test_outcome_price_equal_to_limit_still_alerts() -> None:
         yellow_threshold_usd=Decimal("4949"),
         yellow_max_account_age_days=10,
         yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset(),
         now=now,
     )
 
     assert candidate is not None
+
+
+def test_yellow_sport_trade_can_be_excluded_by_category() -> None:
+    now = datetime(2026, 3, 22, 12, 0, tzinfo=UTC)
+    trade = TradeRecord(
+        proxy_wallet="0xabc",
+        side="BUY",
+        asset="asset-1",
+        condition_id="condition-1",
+        size=Decimal("100"),
+        price=Decimal("0.5"),
+        timestamp=datetime(2026, 3, 22, 10, 0, tzinfo=UTC),
+        title="McCabe vs. Matsuoka: Match O/U 21.5",
+        slug="atp-mccabe-matsuok-2026-03-25",
+        outcome="Over",
+        transaction_hash="0xtx",
+        event_slug="atp-mccabe-matsuok-2026-03-25",
+    )
+    activity = build_activity(timestamp=now - timedelta(minutes=10), usdc_size="5000")
+
+    candidate = classify_trade(
+        trade,
+        activity,
+        joined_at=now - timedelta(days=2),
+        executed_trade_count=1,
+        outcome_price_max=Decimal("0.95"),
+        red_threshold_usd=Decimal("9950"),
+        red_max_account_age_hours=24,
+        red_max_executed_trades=3,
+        yellow_threshold_usd=Decimal("4949"),
+        yellow_max_account_age_days=10,
+        yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset({"sport"}),
+        now=now,
+    )
+
+    assert candidate is None
+
+
+def test_red_sport_trade_is_not_blocked_by_yellow_category_filter() -> None:
+    now = datetime(2026, 3, 22, 12, 0, tzinfo=UTC)
+    trade = TradeRecord(
+        proxy_wallet="0xabc",
+        side="BUY",
+        asset="asset-1",
+        condition_id="condition-1",
+        size=Decimal("100"),
+        price=Decimal("0.5"),
+        timestamp=datetime(2026, 3, 22, 10, 0, tzinfo=UTC),
+        title="McCabe vs. Matsuoka: Match O/U 21.5",
+        slug="atp-mccabe-matsuok-2026-03-25",
+        outcome="Over",
+        transaction_hash="0xtx",
+        event_slug="atp-mccabe-matsuok-2026-03-25",
+    )
+    activity = build_activity(timestamp=now - timedelta(minutes=10), usdc_size="12000")
+
+    candidate = classify_trade(
+        trade,
+        activity,
+        joined_at=now - timedelta(hours=6),
+        executed_trade_count=1,
+        outcome_price_max=Decimal("0.95"),
+        red_threshold_usd=Decimal("9950"),
+        red_max_account_age_hours=24,
+        red_max_executed_trades=3,
+        yellow_threshold_usd=Decimal("4949"),
+        yellow_max_account_age_days=10,
+        yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset({"sport"}),
+        now=now,
+    )
+
+    assert candidate is not None
+    assert candidate.severity == "RED"

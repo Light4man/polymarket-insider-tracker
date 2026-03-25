@@ -121,6 +121,7 @@ class TrackerService:
             yellow_threshold_usd=self.settings.yellow_threshold_usd,
             yellow_max_account_age_days=self.settings.yellow_max_account_age_days,
             yellow_max_executed_trades=self.settings.yellow_max_executed_trades,
+            yellow_excluded_categories=self.settings.yellow_excluded_categories,
             now=now,
         )
         if candidate is None:

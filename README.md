@@ -46,6 +46,7 @@ python3 -m pip install -e .[dev]
 | `YELLOW_THRESHOLD_USD` | Default `4949` |
 | `YELLOW_MAX_ACCOUNT_AGE_DAYS` | Default `10` |
 | `YELLOW_MAX_EXECUTED_TRADES` | Default `10` |
+| `YELLOW_EXCLUDED_CATEGORIES` | Comma-separated categories to skip only for yellow alerts, for example `sport` |
 | `POLL_INTERVAL_SECONDS` | Default `5` |
 | `SUMMARY_TIME` | Daily summary time, `HH:MM` |
 | `SUMMARY_TIMEZONE` | IANA timezone, for example `Europe/Kyiv` |

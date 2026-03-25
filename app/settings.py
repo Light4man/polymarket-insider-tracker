@@ -47,6 +47,16 @@ def _parse_time(value: str) -> time:
     return time(hour=int(hours), minute=int(minutes))
 
 
+def _parse_csv_set(value: str | None) -> frozenset[str]:
+    if value is None or value.strip() == "":
+        return frozenset()
+    return frozenset(
+        item.strip().lower()
+        for item in value.split(",")
+        if item.strip()
+    )
+
+
 @dataclass(frozen=True)
 class Settings:
     telegram_bot_token: str
@@ -59,6 +69,7 @@ class Settings:
     yellow_threshold_usd: Decimal
     yellow_max_account_age_days: int
     yellow_max_executed_trades: int
+    yellow_excluded_categories: frozenset[str]
     poll_interval_seconds: int
     summary_time: time
     summary_timezone: str
@@ -99,6 +110,9 @@ class Settings:
             ),
             yellow_max_executed_trades=int(
                 os.getenv("YELLOW_MAX_EXECUTED_TRADES", "10")
+            ),
+            yellow_excluded_categories=_parse_csv_set(
+                os.getenv("YELLOW_EXCLUDED_CATEGORIES", "")
             ),
             poll_interval_seconds=int(os.getenv("POLL_INTERVAL_SECONDS", "5")),
             summary_time=_parse_time(os.getenv("SUMMARY_TIME", "23:55")),

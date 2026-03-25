@@ -3,30 +3,8 @@ from __future__ import annotations
 from decimal import Decimal, ROUND_HALF_UP
 from html import escape
 
+from app.categories import SPORTS_LEAGUE_PREFIXES
 from app.models import AlertCandidate, SummaryRow
-
-
-SPORTS_LEAGUE_PREFIXES = {
-    "afl",
-    "bundesliga",
-    "champions-league",
-    "epl",
-    "europa-league",
-    "f1",
-    "la-liga",
-    "ligue-1",
-    "mlb",
-    "mma",
-    "nba",
-    "ncaab",
-    "ncaaf",
-    "nfl",
-    "nhl",
-    "serie-a",
-    "tennis",
-    "ufc",
-    "wnba",
-}
 
 
 def _truncate(text: str, width: int) -> str:
