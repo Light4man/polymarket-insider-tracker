@@ -112,7 +112,7 @@ class Settings:
                 os.getenv("YELLOW_MAX_EXECUTED_TRADES", "10")
             ),
             yellow_excluded_categories=_parse_csv_set(
-                os.getenv("YELLOW_EXCLUDED_CATEGORIES", "")
+                os.getenv("YELLOW_EXCLUDED_CATEGORIES", "sport")
             ),
             poll_interval_seconds=int(os.getenv("POLL_INTERVAL_SECONDS", "5")),
             summary_time=_parse_time(os.getenv("SUMMARY_TIME", "23:55")),

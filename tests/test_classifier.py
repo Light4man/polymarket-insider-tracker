@@ -284,7 +284,7 @@ def test_yellow_sport_trade_can_be_excluded_by_category() -> None:
     assert candidate is None
 
 
-def test_red_sport_trade_is_not_blocked_by_yellow_category_filter() -> None:
+def test_red_sport_trade_is_blocked_by_category_filter() -> None:
     now = datetime(2026, 3, 22, 12, 0, tzinfo=UTC)
     trade = TradeRecord(
         proxy_wallet="0xabc",
@@ -318,5 +318,4 @@ def test_red_sport_trade_is_not_blocked_by_yellow_category_filter() -> None:
         now=now,
     )
 
-    assert candidate is not None
-    assert candidate.severity == "RED"
+    assert candidate is None

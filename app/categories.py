@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from app.models import TradeRecord
 
 
@@ -53,6 +55,12 @@ SPORTS_TITLE_MARKERS = (
     "ligue 1",
 )
 
+SPORTS_TITLE_PATTERNS = (
+    re.compile(r"\bvs\.\s"),
+    re.compile(r"\bfc\b"),
+    re.compile(r"\bcf\b"),
+)
+
 
 def detect_trade_categories(trade: TradeRecord) -> set[str]:
     categories: set[str] = set()
@@ -68,6 +76,8 @@ def detect_trade_categories(trade: TradeRecord) -> set[str]:
 
     title = trade.title.lower()
     if any(marker in title for marker in SPORTS_TITLE_MARKERS):
+        categories.add("sport")
+    if any(pattern.search(title) for pattern in SPORTS_TITLE_PATTERNS):
         categories.add("sport")
 
     return categories

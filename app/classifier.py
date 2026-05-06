@@ -66,6 +66,8 @@ def classify_trade(
     account_age = now - joined_at
     bet_size_usd = matched_activity.usdc_size
     categories = detect_trade_categories(trade)
+    if categories.intersection(yellow_excluded_categories):
+        return None
 
     if (
         account_age < timedelta(hours=red_max_account_age_hours)
@@ -85,7 +87,6 @@ def classify_trade(
         account_age < timedelta(days=yellow_max_account_age_days)
         and executed_trade_count < yellow_max_executed_trades
         and bet_size_usd >= yellow_threshold_usd
-        and not categories.intersection(yellow_excluded_categories)
     ):
         return AlertCandidate(
             severity="YELLOW",
