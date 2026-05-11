@@ -10,6 +10,7 @@ SPORTS_LEAGUE_PREFIXES = {
     "atp",
     "bundesliga",
     "champions-league",
+    "cricipl",
     "cs2",
     "epl",
     "europa-league",
@@ -27,6 +28,7 @@ SPORTS_LEAGUE_PREFIXES = {
     "serie-a",
     "tennis",
     "ufc",
+    "uefa-champions-league",
     "valorant",
     "wnba",
     "wta",
@@ -35,12 +37,17 @@ SPORTS_LEAGUE_PREFIXES = {
 SPORTS_TITLE_MARKERS = (
     "fifa",
     "world cup",
+    "champions league",
+    "indian premier league",
+    "cricket",
     "match o/u",
     "match winner",
     "map ",
+    "spread:",
     "(bo",
     "counter-strike",
     "esports",
+    "ipl",
     "atp",
     "wta",
     "ufc",
@@ -56,7 +63,7 @@ SPORTS_TITLE_MARKERS = (
 )
 
 SPORTS_TITLE_PATTERNS = (
-    re.compile(r"\bvs\.\s"),
+    re.compile(r"\bvs\.?\b"),
     re.compile(r"\bfc\b"),
     re.compile(r"\bcf\b"),
 )
