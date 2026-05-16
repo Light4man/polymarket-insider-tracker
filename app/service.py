@@ -112,6 +112,7 @@ class TrackerService:
         candidate = classify_trade(
             trade,
             matched_activity,
+            activities=activities,
             joined_at=joined_at,
             executed_trade_count=len(activities),
             outcome_price_max=self.settings.outcome_price_max,
@@ -122,6 +123,15 @@ class TrackerService:
             yellow_max_account_age_days=self.settings.yellow_max_account_age_days,
             yellow_max_executed_trades=self.settings.yellow_max_executed_trades,
             yellow_excluded_categories=self.settings.yellow_excluded_categories,
+            rapid_reversal_filter_enabled=self.settings.rapid_reversal_filter_enabled,
+            rapid_reversal_window_seconds=self.settings.rapid_reversal_window_seconds,
+            rapid_reversal_max_usd_delta_ratio=(
+                self.settings.rapid_reversal_max_usd_delta_ratio
+            ),
+            rapid_reversal_max_price_delta=self.settings.rapid_reversal_max_price_delta,
+            rapid_reversal_min_opposing_trades=(
+                self.settings.rapid_reversal_min_opposing_trades
+            ),
             now=now,
         )
         if candidate is None:

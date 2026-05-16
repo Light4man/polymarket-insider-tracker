@@ -66,6 +66,11 @@ def build_settings(sqlite_path: Path) -> Settings:
         yellow_max_account_age_days=10,
         yellow_max_executed_trades=10,
         yellow_excluded_categories=frozenset(),
+        rapid_reversal_filter_enabled=True,
+        rapid_reversal_window_seconds=600,
+        rapid_reversal_max_usd_delta_ratio=Decimal("0.05"),
+        rapid_reversal_max_price_delta=Decimal("0.03"),
+        rapid_reversal_min_opposing_trades=1,
         poll_interval_seconds=5,
         summary_time=datetime.strptime("23:55", "%H:%M").time(),
         summary_timezone="UTC",
@@ -111,6 +116,7 @@ def build_activity(
     asset: str = "asset-1",
     title: str = "Will NVIDIA reach $244 in March?",
     slug: str = "will-nvda-reach-244-in-march",
+    price: str = "0.993",
 ) -> UserActivity:
     return UserActivity(
         proxy_wallet=wallet,
@@ -120,7 +126,7 @@ def build_activity(
         size=Decimal("10000"),
         usdc_size=Decimal(usdc_size),
         transaction_hash=tx_hash,
-        price=Decimal("0.993"),
+        price=Decimal(price),
         asset=asset,
         side=side,
         outcome="No",
@@ -196,6 +202,47 @@ def test_service_sends_yellow_with_activity_fallback_joined_at(tmp_path: Path) -
     assert len(telegram.messages) == 1
     assert "[Suspicious Activity]" in telegram.messages[0][1]
     assert "Joined 2026-03-15" in telegram.messages[0][1]
+
+
+def test_service_skips_rapid_reversal_noise(tmp_path: Path) -> None:
+    now = datetime(2026, 5, 16, 9, 30, tzinfo=UTC)
+    wallet = "0xarb"
+    trade = build_trade(wallet=wallet, tx_hash="0xbuy", price="0.90")
+    activities = {
+        wallet: [
+            build_activity(
+                wallet=wallet,
+                tx_hash="0xbuy",
+                usdc_size="7517",
+                timestamp=now,
+                side="BUY",
+                price="0.90",
+            ),
+            build_activity(
+                wallet=wallet,
+                tx_hash="0xsell",
+                usdc_size="7513",
+                timestamp=now,
+                side="SELL",
+                price="0.90",
+            ),
+        ]
+    }
+    profiles = {wallet: PublicProfile(proxy_wallet=wallet, created_at=now)}
+    storage = Storage(tmp_path / "tracker.db")
+    storage.initialize()
+    telegram = FakeTelegramClient()
+    service = TrackerService(
+        settings=build_settings(tmp_path / "tracker.db"),
+        polymarket_client=FakePolymarketClient([trade], activities, profiles),
+        telegram_client=telegram,
+        storage=storage,
+    )
+
+    asyncio.run(service.poll_once(now=now))
+
+    assert telegram.messages == []
+    assert storage.has_seen_trade(trade.dedupe_key) is True
 
 
 def test_service_skips_wallet_with_ten_or_more_trades(tmp_path: Path) -> None:
@@ -335,6 +382,11 @@ def test_service_uses_configured_activity_limit(tmp_path: Path) -> None:
         yellow_max_account_age_days=settings.yellow_max_account_age_days,
         yellow_max_executed_trades=12,
         yellow_excluded_categories=settings.yellow_excluded_categories,
+        rapid_reversal_filter_enabled=settings.rapid_reversal_filter_enabled,
+        rapid_reversal_window_seconds=settings.rapid_reversal_window_seconds,
+        rapid_reversal_max_usd_delta_ratio=settings.rapid_reversal_max_usd_delta_ratio,
+        rapid_reversal_max_price_delta=settings.rapid_reversal_max_price_delta,
+        rapid_reversal_min_opposing_trades=settings.rapid_reversal_min_opposing_trades,
         poll_interval_seconds=settings.poll_interval_seconds,
         summary_time=settings.summary_time,
         summary_timezone=settings.summary_timezone,

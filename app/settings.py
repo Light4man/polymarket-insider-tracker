@@ -57,6 +57,12 @@ def _parse_csv_set(value: str | None) -> frozenset[str]:
     )
 
 
+def _parse_bool(value: str | None, *, default: bool) -> bool:
+    if value is None or value.strip() == "":
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
 @dataclass(frozen=True)
 class Settings:
     telegram_bot_token: str
@@ -70,6 +76,11 @@ class Settings:
     yellow_max_account_age_days: int
     yellow_max_executed_trades: int
     yellow_excluded_categories: frozenset[str]
+    rapid_reversal_filter_enabled: bool
+    rapid_reversal_window_seconds: int
+    rapid_reversal_max_usd_delta_ratio: Decimal
+    rapid_reversal_max_price_delta: Decimal
+    rapid_reversal_min_opposing_trades: int
     poll_interval_seconds: int
     summary_time: time
     summary_timezone: str
@@ -113,6 +124,22 @@ class Settings:
             ),
             yellow_excluded_categories=_parse_csv_set(
                 os.getenv("YELLOW_EXCLUDED_CATEGORIES", "sport")
+            ),
+            rapid_reversal_filter_enabled=_parse_bool(
+                os.getenv("RAPID_REVERSAL_FILTER_ENABLED"),
+                default=True,
+            ),
+            rapid_reversal_window_seconds=int(
+                os.getenv("RAPID_REVERSAL_WINDOW_SECONDS", "600")
+            ),
+            rapid_reversal_max_usd_delta_ratio=Decimal(
+                os.getenv("RAPID_REVERSAL_MAX_USD_DELTA_RATIO", "0.05")
+            ),
+            rapid_reversal_max_price_delta=Decimal(
+                os.getenv("RAPID_REVERSAL_MAX_PRICE_DELTA", "0.03")
+            ),
+            rapid_reversal_min_opposing_trades=int(
+                os.getenv("RAPID_REVERSAL_MIN_OPPOSING_TRADES", "1")
             ),
             poll_interval_seconds=int(os.getenv("POLL_INTERVAL_SECONDS", "5")),
             summary_time=_parse_time(os.getenv("SUMMARY_TIME", "23:55")),

@@ -28,6 +28,8 @@ def build_activity(
     timestamp: datetime,
     usdc_size: str,
     tx_hash: str = "0xtx",
+    side: str = "BUY",
+    price: str = "0.5",
 ) -> UserActivity:
     return UserActivity(
         proxy_wallet="0xabc",
@@ -37,9 +39,9 @@ def build_activity(
         size=Decimal("100"),
         usdc_size=Decimal(usdc_size),
         transaction_hash=tx_hash,
-        price=Decimal("0.5"),
+        price=Decimal(price),
         asset="asset-1",
-        side="BUY",
+        side=side,
         outcome="Yes",
         title="Test Market",
         slug="test-market",
@@ -94,6 +96,82 @@ def test_yellow_alert_boundary() -> None:
 
     assert candidate is not None
     assert candidate.severity == "YELLOW"
+
+
+def test_rapid_reversal_filter_blocks_matching_opposite_side_trade() -> None:
+    now = datetime(2026, 3, 22, 12, 0, tzinfo=UTC)
+    trade = build_trade()
+    matched = build_activity(
+        timestamp=now - timedelta(minutes=2),
+        usdc_size="7517",
+        side="BUY",
+        price="0.90",
+    )
+    opposite = build_activity(
+        timestamp=now - timedelta(minutes=1),
+        usdc_size="7513",
+        tx_hash="0xopposite",
+        side="SELL",
+        price="0.90",
+    )
+
+    candidate = classify_trade(
+        trade,
+        matched,
+        activities=[matched, opposite],
+        joined_at=now,
+        executed_trade_count=2,
+        outcome_price_max=Decimal("0.95"),
+        red_threshold_usd=Decimal("9950"),
+        red_max_account_age_hours=24,
+        red_max_executed_trades=3,
+        yellow_threshold_usd=Decimal("4949"),
+        yellow_max_account_age_days=10,
+        yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset(),
+        now=now,
+        rapid_reversal_filter_enabled=True,
+    )
+
+    assert candidate is None
+
+
+def test_rapid_reversal_filter_ignores_unrelated_opposite_side_trade() -> None:
+    now = datetime(2026, 3, 22, 12, 0, tzinfo=UTC)
+    trade = build_trade()
+    matched = build_activity(
+        timestamp=now - timedelta(minutes=2),
+        usdc_size="7517",
+        side="BUY",
+        price="0.90",
+    )
+    old_opposite = build_activity(
+        timestamp=now - timedelta(hours=1),
+        usdc_size="7513",
+        tx_hash="0xold",
+        side="SELL",
+        price="0.90",
+    )
+
+    candidate = classify_trade(
+        trade,
+        matched,
+        activities=[matched, old_opposite],
+        joined_at=now - timedelta(days=2),
+        executed_trade_count=2,
+        outcome_price_max=Decimal("0.95"),
+        red_threshold_usd=Decimal("9950"),
+        red_max_account_age_hours=24,
+        red_max_executed_trades=3,
+        yellow_threshold_usd=Decimal("4949"),
+        yellow_max_account_age_days=10,
+        yellow_max_executed_trades=10,
+        yellow_excluded_categories=frozenset(),
+        now=now,
+        rapid_reversal_filter_enabled=True,
+    )
+
+    assert candidate is not None
 
 
 def test_exact_yellow_age_cutoff_does_not_alert() -> None:
